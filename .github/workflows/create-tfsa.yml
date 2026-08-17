@@ -40,7 +40,7 @@ permissions:
 
 jobs: 
   create-tfsharedstorageaccount:
-    runs-on: adusa
+    runs-on: ubuntu-latest
     environment: ${{ inputs.app_environment }}
     env:
       SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
