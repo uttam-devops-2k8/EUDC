@@ -10,8 +10,8 @@ permissions:
 
 jobs:
   terraform_plan:
-    uses: RoyalAholdDelhaize/gso-tech-workflows/.github/workflows/plan.yml@0.31.0
+    uses: uttam-devops-2k8/EUDC/.github/workflows/create-tfsa.yml@main
     secrets: inherit
     with:
-      runner: adusa
+      runner: ubuntu-latest
       terraform_version: 1.14.3
