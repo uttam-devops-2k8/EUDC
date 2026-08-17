@@ -2,6 +2,7 @@ name: Create TF State storage account
 
 on:
   workflow_call:
+  workflow_dispatch:
     inputs:
       app_environment:
         type: choice
