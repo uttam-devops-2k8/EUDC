@@ -1,0 +1,100 @@
+name: Create TF State storage account
+
+on:
+  workflow_dispatch:
+    inputs:
+      app_environment:
+        type: choice
+        description: Application name & environment of the VM
+        options:
+        - com-tsteu2
+        - com-prdeu2
+        - prdeu2
+        - tsteu2
+        - acceu2
+      storageAccountName:
+        type: string
+        description: Name of storage account
+      resourceGroupName:
+        type: string
+        description: Name of resource group
+      msiObjectID:
+        type: string
+        description: Object ID of the MSI
+      storageResourceId:
+        type: string
+        description: Storage Account Resource ID
+      location:
+        type: string
+        description: Location of the resources
+      subnetId:
+        type: string
+        description: SubnetId to be whitelisted
+
+permissions:
+  id-token: write
+  contents: read
+  pull-requests: write
+  actions: read
+
+jobs: 
+  create-tfsharedstorageaccount:
+    runs-on: adusa
+    environment: ${{ inputs.app_environment }}
+    env:
+      SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
+      CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
+      TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
+      storageAccountName: ${{ inputs.storageAccountName }}
+      resourceGroupName: ${{ inputs.resourceGroupName }}
+      msiObjectID: ${{ inputs.msiObjectID }}
+      storageResourceId: ${{ inputs.storageResourceId }}
+      location: ${{ inputs.location }}
+      subnetId: ${{ inputs.subnetId }}
+      
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Azure OIDC Login
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.ARM_CLIENT_ID }}
+          tenant-id: ${{ secrets.ARM_TENANT_ID }}
+          subscription-id: ${{ secrets.ARM_SUBSCRIPTION_ID }}
+          allow-no-subscriptions: false
+
+      - name: Switch to Virtual Machine Subscription
+        run: az account set --subscription $SUBSCRIPTION_ID
+
+      - name: Validate and create Resource group
+        run: |
+          if ! az group show --name $resourceGroupName > /dev/null 2>&1; then
+            echo "Resource group $resourceGroupName does not exist. Creating..."
+            az group create --name $resourceGroupName --location $location
+          else
+            echo "Resource group $resourceGroupName already exists."
+          fi
+        shell: bash
+
+      - name: Create the storage account
+        run: |
+          az storage account create --name $storageAccountName --resource-group $resourceGroupName --location $location --sku Standard_GZRS --kind StorageV2 --default-action Deny --allow-blob-public-access false
+        shell: bash
+
+      - name: Deny public access storage account
+        run: |
+          az storage account update --name $storageAccountName --resource-group $resourceGroupName --default-action Deny --allow-blob-public-access false --subnet $subnetId
+        shell: bash
+
+      - name: Whitelist the subnet in storage account
+        run: |
+          az storage account network-rule add --account-name $storageAccountName --resource-group $resourceGroupName --subnet $subnetId
+        shell: bash
+
+      - name: Assign role
+        run: |
+          az role assignment create --assignee $msiObjectID --role "Storage Blob Data Owner" --scope $storageResourceId
+        shell: bash
+      
