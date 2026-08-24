@@ -1,0 +1,21 @@
+services:
+  devcontainer:
+    image: gsolacrprdweeu01.azurecr.io/devcontainer:1.9.8-2410.3011
+    user: vscode
+
+    volumes:
+      - ..:/devcontainer/workspace
+      - volume-devcontainer:/home/vscode
+      - volume-devcontainer-bashhistory:/commandhistory
+      - /var/run/docker.sock:/var/run/docker.sock
+
+    environment:
+      - HISTFILE=/commandhistory/.bash_history
+      - HISTSIZE=1000
+
+    # Overrides default command so things don't shut down after the process ends.
+    command: /bin/sh -c "while sleep 1000; do :; done"
+
+volumes:
+  volume-devcontainer:
+  volume-devcontainer-bashhistory:

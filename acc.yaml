@@ -1,0 +1,418 @@
+common:
+  location: "eastus2" 
+  environment: "acc"
+  service_principal_application_id: ""
+  subscription_id: "a38ee29f-c413-44c3-b9c0-09ed3b939d5d"
+  tenant_id: "a6b169f1-592b-4329-8f33-8db8903003c7"
+
+# Design Document: https://confluence-aholddelhaize.atlassian.net/wiki/spaces/GC/pages/150768158773/EUDC+Design+template
+
+terraform:
+  state:
+    resource_group_name: rg-terraform-nonprd-eus2  
+    storage_account_name: satfdsnonprdeus2
+
+central:
+  keyvault_name: "kv-gsoservices-prd-01" 
+  keyvault_resource_group_name: "rg-secrets-prd-weeu-01"
+  subscription_id: "cdfcf51c-563d-4bee-a7f5-184bf9d4dcba"
+  dns_subscription_id: "5a528d05-0a0e-492b-b609-cf0ecf6c30d7"
+
+resourceTags:
+  ApplicationId: "APM0002805"
+  ApplicationName: "Active Directory Domain Services"
+  ApplicationTeam: "Wintel Team"
+  ApplicationOwner: "azure-al-gsocf2"
+  Brand: "adgroup"
+  BusinessUnit: "iam"
+  CLZ-BusinessOwner: "Gabor.Kalmar@aholddelhaize.com"
+  CLZ-OperationalOwner: "Nigel.Sinclair@aholddelhaize.com"
+  Environment: "acc"
+  GitHubRepoReference: "https://github.com/RoyalAholdDelhaize/adgep-eudc-domainservices-infra"
+  location: "westeurope" 
+  environment: ""
+  service_principal_application_id: ""
+  subscription_id: ""
+  tenant_id: "a6b169f1-592b-4329-8f33-8db8903003c7"
+
+terraform:
+  state:
+    resource_group_name:  
+    storage_account_name: 
+
+resource_group:
+  name: 
+
+resourceTags:
+  ApplicationId: ""
+  ApplicationName: ""
+  ApplicationOwner: "azure-al-gsocf2"
+  AutoShutdownSchedule: ""
+  FunctionalEnvironment: ""
+  Live: "no"
+  CloudSupportParty: "TCS GSO Cloud Operations"
+  ResourcePurpose: ""
+  SCFClassification: "Standard"
+  SCFVersion: "2.0"
+  SMFVersion: "1.0"
+  SubscriptionEnvironment: "nonprd"
+  SubscriptionPurpose: "iam"
+  DefaultAssignmentGroup: "GL-ENA-Cloud_CFI-L3"
+
+vmTags:
+  AutomaticBackup: "enabled"
+  AutoShutdownSchedule: "disable"
+  
+resource_group: 
+  name: rg-eudc-acc-eus2-01
+
+keyvaults:
+  - name: kvdsnonprdeus2
+    public_network_access_enabled: true
+    ip_rules: ["    "] # AVD Network Access
+    allow_subnet_ids:
+      [
+        "/subscriptions/a38ee29f-c413-44c3-b9c0-09ed3b939d5d/resourceGroups/rg-tepconnectivity-prd-weeu-02/providers/Microsoft.Network/virtualNetworks/vnet-eepkaas-prd-weeu-02/subnets/snet-aks-k8s-prd-tooling",
+        "/subscriptions/a38ee29f-c413-44c3-b9c0-09ed3b939d5d/resourceGroups/rg-tepconnectivity-prd-gwc-01/providers/Microsoft.Network/virtualNetworks/vnet-adgroup-010298-prd-gwc-01/subnets/snet-euft-ac1-gwc-01",
+      ]
+
+vnet:
+   name: "vnet-rbsdomainservices001-nonprd-e2-01"
+   resource_group_name: ""
+   subnets:
+     subnet:  
+       name: "snet-ds-nonprd-eus2-01"
+       address_prefix: "x"
+       service_endpoints:
+       - "Microsoft.Storage"
+       - "Microsoft.KeyVault"
+       - "Microsoft.AzureActiveDirectory"
+       - "Microsoft.Sql"
+       delegation:
+         function_app:
+           - name: Microsoft.App/environments
+             actions:
+               - Microsoft.Network/virtualNetworks/subnets/action
+               - Microsoft.Network/virtualNetworks/subnets/join/action
+       nsg:
+         inbound_rules:
+           inbound_rules:
+            - name: "Allow-GitHubRunner"
+              access: "Allow"
+              priority: 100
+              protocol: "Tcp"
+              source_address_prefix: "10.251.3.128/28"
+              source_port_range: "*"
+              destination_address_prefix: "*"
+              destination_port_ranges:
+                - "22"
+                - "443"
+            - name: "Deny-Any-To-Any"
+              access: "Allow"
+              priority: 4096
+              protocol: "*"
+              source_address_prefix: "*"
+              source_port_range: "*"
+              destination_address_prefix: "*"
+              destination_port_ranges: "*"
+     subnet:  
+       name: "snet-eudc-acc-gwc-01"
+       address_prefix: "x"
+       service_endpoints:
+       - "Microsoft.Storage"
+       - "Microsoft.KeyVault"
+       - "Microsoft.AzureActiveDirectory"
+       - "Microsoft.Sql"
+       nsg:
+         inbound_rules:
+           inbound_rules:
+            - name: "Allow-Bastion"
+              access: "Allow"
+              priority: 100
+              protocol: "Tcp"
+              source_address_prefix: "TBD"
+              source_port_range: "*"
+              destination_address_prefix: "*"
+              destination_port_ranges:
+                - "3389"
+            - name: "Allow-GitHubRunner"
+              access: "Allow"
+              priority: 110
+              protocol: "Tcp"
+              source_address_prefix: "10.251.3.128/28"
+              source_port_range: "*"
+              destination_address_prefix: "*"
+              destination_port_ranges:
+                - "5986"
+            - name: "Allow-DC-EU"
+              access: "Allow"
+              priority: 120
+              protocol: "*"
+              source_address_prefix: "10.75.x.x/29"
+              source_port_range: "*"
+              destination_address_prefix: "*"
+              destination_port_ranges:
+                - "53"
+                - "88"
+                - "123"
+                - "135"
+                - "137-139"
+                - "389"
+                - "445"
+                - "464"
+                - "636"
+                - "3268"
+                - "3269"
+                - "5722"
+                - "49152-65535"
+                - "9389"
+            - name: "Allow-DC-US"
+              access: "Allow"
+              priority: 130
+              protocol: "*"
+              source_address_prefix:
+                - "10.129.144.57"
+                - "10.37.24.123"
+              source_port_range: "*"
+              destination_address_prefix: "*"
+              destination_port_ranges:
+                - "53"
+                - "88"
+                - "123"
+                - "135"
+                - "137-139"
+                - "389"
+                - "445"
+                - "464"
+                - "636"
+                - "3268"
+                - "3269"
+                - "5722"
+                - "49152-65535"
+                - "9389"
+            - name: "Allow-EntraID-US"
+              access: "Allow"
+              priority: 140
+              protocol: "*"
+              source_address_prefix:
+                - "10.129.144.108"
+                - "10.37.24.237"
+              source_port_range: "*"
+              destination_address_prefix: "*"
+              destination_port_ranges:
+                - "53"
+                - "88"
+                - "123"
+                - "135"
+                - "137-139"
+                - "389"
+                - "445"
+                - "464"
+                - "636"
+                - "3268"
+                - "3269"
+                - "5722"
+                - "49152-65535"
+                - "9389"
+            - name: "Deny-Any-To-Any"
+              access: "Allow"
+              priority: 4096
+              protocol: "*"
+              source_address_prefix: "*"
+              source_port_range: "*"
+              destination_address_prefix: "*"
+              destination_port_ranges: "*"
+  DefaultAssignmentGroup: ""
+
+# vmTags:
+#   AutomaticBackup: "enabled"
+
+# vnet:
+#   name: ""
+#   resource_group_name: ""
+#   subnets: 
+#     subnet:  
+#       name: ""
+#       address_prefix: ""
+#       route_table_name: ""
+#       route_table_rg: ""
+#       service_endpoints:
+#       - "Microsoft.Storage"
+#       - "Microsoft.KeyVault"
+#       - "Microsoft.AzureActiveDirectory"
+#       - "Microsoft.Sql"
+#       nsg:
+#         inbound_rules:
+#           - name: "Allow-Bastion"
+#             access: "Allow"
+#             priority: 100
+#             protocol: "Tcp"
+#             destination_port_ranges: 
+#             - "22"
+#             source_address_prefix: ""
+#             destination_address_prefix: "*"
+#           - name: "Allow-PrivateAgent-Gso"
+#             access: "Allow"
+#             priority: 110
+#             protocol: "*"
+#             destination_port_ranges:
+#             - "22"
+#             - "443"
+#             - "5985"
+#             - "5986"
+#             source_address_prefix: "10.72.111.144/28"
+#             destination_address_prefix: "*"
+#           - name: "Allow-WindowsDC-Any"
+#             access: "Allow"
+#             priority: 120
+#             protocol: "Tcp"
+#             destination_port_ranges:            
+#             - "53"
+#             - "88"
+#             - "123135"
+#             - "389"
+#             - "445"
+#             - "464"
+#             - "636"
+#             - "3268"
+#             - "3269"
+#             - "5722"
+#             - "9389"
+#             - "49152-65535"
+#             source_address_prefixes:
+#             - "10.232.1.0/28"
+#             - "10.236.1.0/28"
+#             destination_address_prefix: "*"
+#           - name: "Allow-ControlM-ISDIACCSubnet"
+#             access: "Allow"
+#             priority: 140
+#             protocol: "Tcp"
+#             destination_port_ranges:            
+#             - "7047"
+#             source_address_prefixes:
+#             - "10.72.70.240/28"
+#             - "10.73.70.240/28"
+#             destination_address_prefix: "*"
+#           # we get this one by default using Terraform
+#           # - name: "Deny-Any-Any"
+#           #   access: "Deny"
+#           #   priority: 4096
+#           #   protocol: "*"
+#           #   destination_port_range: "*"
+#           #   source_address_prefix: "*"
+#           #   destination_address_prefix: "*"
+ 
+private_endpoints:
+  - name: "pe-satfdsnonprdeus2"
+    subnet_name: "snet-ds-nonprd-eus2-01"
+    resource_id: "/subscriptions/cb402ad2-ddf2-4b7a-9252-9c29baace874/resourceGroups/rg-terraform-nonprd-eus2/providers/Microsoft.Web/sites/rg-terraform-nonprd-eus2"
+    subresource_names:
+      - "blob"
+    private_dns_zones:
+      - "privatelink.azurewebsites.net"
+    is_manual_connection: false
+    dnsrecord_name: "Storage Account"
+  - name: "pe-kvdsnonprdeus2"
+    subnet_name: "snet-ds-nonprd-eus2-01"
+    resource_id: "/subscriptions/cb402ad2-ddf2-4b7a-9252-9c29baace874/resourceGroups/rg-terraform-nonprd-eus2/providers/Microsoft.Web/sites/rg-terraform-nonprd-eus2"
+    subresource_names:
+      - "vault"
+    private_dns_zones:
+      - "privatelink.azurewebsites.net"
+    is_manual_connection: false
+    dnsrecord_name: "Key Vault" 
+
+  
+ virtual_machines:
+   virtual_machine:
+     name: "vmeudcacceus201"
+     sku: "Standard_D4as_v7"
+     subnet_name: "snet-eudc-acc-gwc-01"
+     os_storage_account_type: "Premium_SSD"
+     os_caching: "ReadWrite"
+     os_disk_size_gb: "127"
+     timezone: "UTC-5" #optional
+     availability_zone: "1"
+     os: "Windows"
+     source_image:    
+       image: "windows-server-2022-cis"
+     access_ad_groups:
+     - ad_group: "GSP_ADM_TCS_GSOCloudSupport"
+       linux_ldap_path: "GSP_ADM_TCS_GSOCloudSupport,ou=TCS,ou=Groups,dc=Emea,dc=Royalahold,dc=net"
+       windows_local_group: ""
+     - ad_group: "GSP_ADM_GSO_CloudFoundation"
+       linux_ldap_path: "GSP_ADM_GSO_CloudFoundation,ou=TCS,ou=Groups,dc=Emea,dc=Royalahold,dc=net"
+       windows_local_group: ""
+     data_disks:
+        - lun: 0
+          zone: 1
+          disk_size_gb: 50
+          caching: "ReadOnly"
+          storage_account_type: "Premium_SSD_V2"
+ 
+role_assignments:
+  - scope: "/subscriptions/61c84e6d-5b42-4f5d-b27e-7e31eff7dd71/resourceGroups/rg-ds-shared-nonprd-eus2/providers/Microsoft.Storage/storageAccounts/kvdsnonprdeus2"
+    role_definition_name: "Key Vault Administrator"
+    principal_name: cld-alus-adgroup-res-kvad-kvdsnonprdeus2-pim
+    kind: "service"
+  - scope: "/subscriptions/61c84e6d-5b42-4f5d-b27e-7e31eff7dd71/resourceGroups/rg-terraform-nonprd-eus2/providers/Microsoft.KeyVault/vaults/satfcyberarknonprdeus2"
+    role_definition_name: "Storage Blob Data Contributor"
+    principal_name: cld-alus-adgroup-res-sbdc-satfcyberarknonprdeus2-pim
+    kind: "service" 
+# shared:
+#   keyvault_name: ""
+#   keyvault_resource_group_name: ""
+#   storage_account_name: ""
+#   storage_account_resource_group_name: ""
+
+central:
+  keyvault_name: "kv-gsoservices-prd-01" 
+  keyvault_resource_group_name: "rg-secrets-prd-weeu-01"
+  subscription_id: "cdfcf51c-563d-4bee-a7f5-184bf9d4dcba"
+  dns_subscription_id: "5a528d05-0a0e-492b-b609-cf0ecf6c30d7"
+  
+# virtual_machines:
+#   virtual_machine:
+#     name: ""
+#     sku: "Standard_D4s_v5"
+#     subnet_name: ""
+#     os_storage_account_type: "Premium_ZRS"
+#     os_caching: "ReadWrite"
+#     os_disk_size_gb: "127"
+#     timezone: "Europe/Amsterdam" #optional
+#     availability_zone: "1"
+#     os: "linux"
+#     source_image:    
+#       image: "rhel-8.4-cis"
+#     access_ad_groups:
+#     - ad_group: "GSP_ADM_TCS_GSOCloudSupport"
+#       linux_ldap_path: "GSP_ADM_TCS_GSOCloudSupport,ou=TCS,ou=Groups,dc=Emea,dc=Royalahold,dc=net"
+#       windows_local_group: ""
+#     - ad_group: "GSP_ADM_GSO_CloudFoundation"
+#       linux_ldap_path: "GSP_ADM_GSO_CloudFoundation,ou=TCS,ou=Groups,dc=Emea,dc=Royalahold,dc=net"
+#       windows_local_group: ""
+#     data_disks:
+#     - disk_size_gb: 127
+#       caching: 'None'    
+#       storage_account_type: 'Premium_ZRS'
+
+# keyvaults:
+# - name: 
+ 
+# role_assignments:
+# - scope: '/subscriptions/9adb5f05-0ac4-424d-a3ae-610cf456b207/resourceGroups/rg-gso-shared-prd-weeu/providers/Microsoft.KeyVault/vaults/kvgsoservices01prdweeu'
+#   role_definition_name: 'Key Vault Administrator'
+#   principal_name: spn-gsotech-prd-gsoservices-01-gh
+# - scope: '/subscriptions/9adb5f05-0ac4-424d-a3ae-610cf456b207/resourceGroups/rg-gso-shared-prd-weeu'
+#   role_definition_name: 'Reader'
+#   principal_name: CLD-AlEu-AHNL-Rol-CloudNetworkTeam 
+# - scope: resource_group
+#   role_definition_name: 'Reader'
+#   principal_name: CLD-AlEu-AHNL-Rol-CloudNetworkTeam 
+# - scope: resource_group
+#   role_definition_name: 'Reader'
+#   principal_name: cld-aleu-gsotech-res-read-rg-gso-biqs-prd-weeu 
+# - scope: keyvaults.kvbiqsprdweeu
+#   role_definition_name: 'Key Vault Secrets User'
+#   principal_name: cld-aleu-gsotech-res-kvsu-kvbiqsprdweeu  
+ 

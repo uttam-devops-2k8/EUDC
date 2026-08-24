@@ -1,0 +1,39 @@
+{
+    "name": "Ahold GSO Dev Container",
+    // Update the 'dockerComposeFile' list if you have more compose files or use different names.
+    "dockerComposeFile": "docker-compose.yml",
+    // Container user to use in VSCode Online and GitHub Codespaces
+    "remoteUser": "vscode",
+    // The 'service' property is the name of the service for the container that VS Code should
+    // use. Update this value and .devcontainer/docker-compose.yml to the real service name.
+    "service": "devcontainer",
+    // The optional 'workspaceFolder' property is the path VS Code should open by default when
+    // connected. This is typically a volume mount in .devcontainer/docker-compose.yml
+    "workspaceFolder": "/devcontainer/workspace",
+    // Use 'settings' to set *default* container specific settings.json values on container create.
+    // You can edit these settings after create using File > Preferences > Settings > Remote.
+    "customizations": {
+        "vscode": {
+            "settings": {
+                "files.eol": "\n",
+                "terminal.integrated.defaultProfile.linux": "zsh",
+                "editor.tabSize": 2,
+                "terminal.integrated.scrollback": 64000
+            },
+            "extensions": [
+                "hashicorp.terraform",
+                "4ops.terraform",
+                "mutantdino.resourcemonitor"
+            ]
+        }
+    },
+    // Set the permissions for the workspace folder in the container.
+    // Configure git with pre-commit (for the precommit hooks checks) and vi as the default editor.
+    "postCreateCommand": "sudo chown -R $(whoami):$(whoami) /devcontainer/workspace && git config --global core.editor vi && pre-commit install && pre-commit autoupdate --freeze",
+    // Configure permissions for the docker socket
+    "postStartCommand": "sudo chmod 666 /var/run/docker.sock"
+    // Uncomment the next line if you want start specific services in your Docker Compose config.
+    // "runServices": [],
+    // Uncomment this like if you want to keep your containers running after VS Code shuts down.
+    // "shutdownAction": "none"
+}
